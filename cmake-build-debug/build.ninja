@@ -41,45 +41,72 @@ include CMakeFiles/rules.ninja
 
 cmake_ninja_workdir = C$:/Users/wiktoralan.wisniowi/Desktop/project-hermes/cmake-build-debug/
 # =============================================================================
-# Object build statements for EXECUTABLE target project_hermes
+# Object build statements for EXECUTABLE target chat_client
 
 
 #############################################
-# Order-only phony target for project_hermes
+# Order-only phony target for chat_client
 
-build cmake_object_order_depends_target_project_hermes: phony || CMakeFiles/project_hermes.dir
+build cmake_object_order_depends_target_chat_client: phony || CMakeFiles/chat_client.dir
 
-build CMakeFiles/project_hermes.dir/src/main.cpp.obj: CXX_COMPILER__project_hermes_Debug C$:/Users/wiktoralan.wisniowi/Desktop/project-hermes/src/main.cpp || cmake_object_order_depends_target_project_hermes
-  DEP_FILE = CMakeFiles\project_hermes.dir\src\main.cpp.obj.d
+build CMakeFiles/chat_client.dir/src/chat_client.cpp.obj: CXX_COMPILER__chat_client_Debug C$:/Users/wiktoralan.wisniowi/Desktop/project-hermes/src/chat_client.cpp || cmake_object_order_depends_target_chat_client
+  DEP_FILE = CMakeFiles\chat_client.dir\src\chat_client.cpp.obj.d
   FLAGS = -g -fdiagnostics-color=always
   INCLUDES = -IC:/Users/wiktoralan.wisniowi/Desktop/SDK/asio-1.24.0/include
-  OBJECT_DIR = CMakeFiles\project_hermes.dir
-  OBJECT_FILE_DIR = CMakeFiles\project_hermes.dir\src
-
-build CMakeFiles/project_hermes.dir/include/tcp_server.cpp.obj: CXX_COMPILER__project_hermes_Debug C$:/Users/wiktoralan.wisniowi/Desktop/project-hermes/include/tcp_server.cpp || cmake_object_order_depends_target_project_hermes
-  DEP_FILE = CMakeFiles\project_hermes.dir\include\tcp_server.cpp.obj.d
-  FLAGS = -g -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/wiktoralan.wisniowi/Desktop/SDK/asio-1.24.0/include
-  OBJECT_DIR = CMakeFiles\project_hermes.dir
-  OBJECT_FILE_DIR = CMakeFiles\project_hermes.dir\include
+  OBJECT_DIR = CMakeFiles\chat_client.dir
+  OBJECT_FILE_DIR = CMakeFiles\chat_client.dir\src
 
 
 # =============================================================================
-# Link build statements for EXECUTABLE target project_hermes
+# Link build statements for EXECUTABLE target chat_client
 
 
 #############################################
-# Link the executable project_hermes.exe
+# Link the executable chat_client.exe
 
-build project_hermes.exe: CXX_EXECUTABLE_LINKER__project_hermes_Debug CMakeFiles/project_hermes.dir/src/main.cpp.obj CMakeFiles/project_hermes.dir/include/tcp_server.cpp.obj
+build chat_client.exe: CXX_EXECUTABLE_LINKER__chat_client_Debug CMakeFiles/chat_client.dir/src/chat_client.cpp.obj
   FLAGS = -g
-  LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
-  OBJECT_DIR = CMakeFiles\project_hermes.dir
+  LINK_LIBRARIES = -lws2_32  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  OBJECT_DIR = CMakeFiles\chat_client.dir
   POST_BUILD = cd .
   PRE_LINK = cd .
-  TARGET_FILE = project_hermes.exe
-  TARGET_IMPLIB = libproject_hermes.dll.a
-  TARGET_PDB = project_hermes.exe.dbg
+  TARGET_FILE = chat_client.exe
+  TARGET_IMPLIB = libchat_client.dll.a
+  TARGET_PDB = chat_client.exe.dbg
+
+# =============================================================================
+# Object build statements for EXECUTABLE target chat_server
+
+
+#############################################
+# Order-only phony target for chat_server
+
+build cmake_object_order_depends_target_chat_server: phony || CMakeFiles/chat_server.dir
+
+build CMakeFiles/chat_server.dir/src/chat_server.cpp.obj: CXX_COMPILER__chat_server_Debug C$:/Users/wiktoralan.wisniowi/Desktop/project-hermes/src/chat_server.cpp || cmake_object_order_depends_target_chat_server
+  DEP_FILE = CMakeFiles\chat_server.dir\src\chat_server.cpp.obj.d
+  FLAGS = -g -fdiagnostics-color=always
+  INCLUDES = -IC:/Users/wiktoralan.wisniowi/Desktop/SDK/asio-1.24.0/include
+  OBJECT_DIR = CMakeFiles\chat_server.dir
+  OBJECT_FILE_DIR = CMakeFiles\chat_server.dir\src
+
+
+# =============================================================================
+# Link build statements for EXECUTABLE target chat_server
+
+
+#############################################
+# Link the executable chat_server.exe
+
+build chat_server.exe: CXX_EXECUTABLE_LINKER__chat_server_Debug CMakeFiles/chat_server.dir/src/chat_server.cpp.obj
+  FLAGS = -g
+  LINK_LIBRARIES = -lws2_32  -lwsock32  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  OBJECT_DIR = CMakeFiles\chat_server.dir
+  POST_BUILD = cd .
+  PRE_LINK = cd .
+  TARGET_FILE = chat_server.exe
+  TARGET_IMPLIB = libchat_server.dll.a
+  TARGET_PDB = chat_server.exe.dbg
 
 
 #############################################
@@ -104,10 +131,54 @@ build CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
 
 build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 
+
+#############################################
+# Utility command for list_install_components
+
+build list_install_components: phony
+
+
+#############################################
+# Utility command for install
+
+build CMakeFiles/install.util: CUSTOM_COMMAND all
+  COMMAND = cmd.exe /C "cd /D C:\Users\wiktoralan.wisniowi\Desktop\project-hermes\cmake-build-debug && C:\Users\wiktoralan.wisniowi\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\223.8214.51\bin\cmake\win\bin\cmake.exe -P cmake_install.cmake"
+  DESC = Install the project...
+  pool = console
+  restat = 1
+
+build install: phony CMakeFiles/install.util
+
+
+#############################################
+# Utility command for install/local
+
+build CMakeFiles/install/local.util: CUSTOM_COMMAND all
+  COMMAND = cmd.exe /C "cd /D C:\Users\wiktoralan.wisniowi\Desktop\project-hermes\cmake-build-debug && C:\Users\wiktoralan.wisniowi\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\223.8214.51\bin\cmake\win\bin\cmake.exe -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake"
+  DESC = Installing only the local directory...
+  pool = console
+  restat = 1
+
+build install/local: phony CMakeFiles/install/local.util
+
+
+#############################################
+# Utility command for install/strip
+
+build CMakeFiles/install/strip.util: CUSTOM_COMMAND all
+  COMMAND = cmd.exe /C "cd /D C:\Users\wiktoralan.wisniowi\Desktop\project-hermes\cmake-build-debug && C:\Users\wiktoralan.wisniowi\AppData\Local\JetBrains\Toolbox\apps\CLion\ch-0\223.8214.51\bin\cmake\win\bin\cmake.exe -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake"
+  DESC = Installing the project stripped...
+  pool = console
+  restat = 1
+
+build install/strip: phony CMakeFiles/install/strip.util
+
 # =============================================================================
 # Target aliases.
 
-build project_hermes: phony project_hermes.exe
+build chat_client: phony chat_client.exe
+
+build chat_server: phony chat_server.exe
 
 # =============================================================================
 # Folder targets.
@@ -117,7 +188,7 @@ build project_hermes: phony project_hermes.exe
 #############################################
 # Folder: C:/Users/wiktoralan.wisniowi/Desktop/project-hermes/cmake-build-debug
 
-build all: phony project_hermes.exe
+build all: phony chat_client.exe chat_server.exe
 
 # =============================================================================
 # Built-in targets
