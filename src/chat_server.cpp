@@ -1,7 +1,3 @@
-//
-// chat_server.cpp
-// ~~~~~~~~~~~~~~~
-//
 // Copyright (c) 2003-2022 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
@@ -29,7 +25,7 @@ typedef std::deque<chat_message> chat_message_queue;
 class chat_participant
 {
 public:
-    virtual ~chat_participant() {}
+    virtual ~chat_participant() = default;
     virtual void deliver(const chat_message& msg) = 0;
 };
 
@@ -40,14 +36,14 @@ typedef std::shared_ptr<chat_participant> chat_participant_ptr;
 class chat_room
 {
 public:
-    void join(chat_participant_ptr participant)
+    void join(const chat_participant_ptr& participant)
     {
         participants_.insert(participant);
         for (auto msg: recent_msgs_)
             participant->deliver(msg);
     }
 
-    void leave(chat_participant_ptr participant)
+    void leave(const chat_participant_ptr& participant)
     {
         participants_.erase(participant);
     }
@@ -58,20 +54,19 @@ public:
         while (recent_msgs_.size() > max_recent_msgs)
             recent_msgs_.pop_front();
 
-        for (auto participant: participants_)
+        for (const auto& participant: participants_)
             participant->deliver(msg);
     }
 
 private:
     std::set<chat_participant_ptr> participants_;
-    enum { max_recent_msgs = 100 };
+    enum { max_recent_msgs = 10 };
     chat_message_queue recent_msgs_;
 };
 
 //----------------------------------------------------------------------
 
-class chat_session
-        : public chat_participant,
+class chat_session : public chat_participant,
           public std::enable_shared_from_this<chat_session>
 {
 public:
@@ -87,7 +82,7 @@ public:
         do_read_header();
     }
 
-    void deliver(const chat_message& msg)
+    void deliver(const chat_message& msg) override
     {
         bool write_in_progress = !write_msgs_.empty();
         write_msgs_.push_back(msg);
@@ -100,10 +95,9 @@ public:
 private:
     void do_read_header()
     {
-        auto self(shared_from_this());
         asio::async_read(socket_,
                          asio::buffer(read_msg_.data(), chat_message::header_length),
-                         [this, self](std::error_code ec, std::size_t /*length*/)
+                         [this](std::error_code ec, std::size_t /*length*/)
                          {
                              if (!ec && read_msg_.decode_header())
                              {
@@ -118,10 +112,9 @@ private:
 
     void do_read_body()
     {
-        auto self(shared_from_this());
         asio::async_read(socket_,
                          asio::buffer(read_msg_.body(), read_msg_.body_length()),
-                         [this, self](std::error_code ec, std::size_t /*length*/)
+                         [this](std::error_code ec, std::size_t /*length*/)
                          {
                              if (!ec)
                              {

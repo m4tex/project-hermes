@@ -21,28 +21,16 @@ public:
     static constexpr std::size_t header_length = 4;
     static constexpr std::size_t max_body_length = 512;
 
-    chat_message() : body_length_(0)
-    {
-    }
-
-    const char* data() const
-    {
-        return data_;
-    }
+    chat_message() : body_length_(0) {} // NOLINT(cppcoreguidelines-pro-type-member-init)
 
     char* data()
     {
         return data_;
     }
 
-    std::size_t length() const
+    [[nodiscard]] std::size_t length() const
     {
         return header_length + body_length_;
-    }
-
-    const char* body() const
-    {
-        return data_ + header_length;
     }
 
     char* body()
@@ -50,7 +38,7 @@ public:
         return data_ + header_length;
     }
 
-    std::size_t body_length() const
+    [[nodiscard]] std::size_t body_length() const
     {
         return body_length_;
     }
@@ -66,7 +54,7 @@ public:
     {
         char header[header_length + 1] = "";
         std::strncat(header, data_, header_length);
-        body_length_ = std::atoi(header);
+        body_length_ = std::stoi(header);
         if (body_length_ > max_body_length)
         {
             body_length_ = 0;

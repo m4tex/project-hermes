@@ -16,8 +16,6 @@ if (WIN32)
 
 else()
 
-    # find_library...
+    # nothing to do if it's linux
 
 endif ()
-
-install(TARGETS chat_client chat_server RUNTIME DESTINATION /bin)
