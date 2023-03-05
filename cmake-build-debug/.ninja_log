@@ -1,9 +1,0 @@
-# ninja log v5
-1	124	6988677949899323	build.ninja	96f71ac5cc30964
-2	76	6983749360996460	CMakeFiles/project_hermes.dir/src/tcp_server.cpp.obj	753cd96c440bd1f3
-0	4002	6988470893283785	CMakeFiles/chat_client.dir/src/chat_client.cpp.obj	f70146b8c5ddf943
-0	4026	6988478110711776	CMakeFiles/chat_server.dir/src/chat_server.cpp.obj	68eccfee1383e1f3
-4	1135	6988677538859915	chat_server.exe	ee79309a20a51bf9
-0	4725	6983749407451813	CMakeFiles/project_hermes.dir/src/main.cpp.obj	1fedf8029c89b2bf
-4	1374	6988475285650273	chat_client.exe	85919b5b5fc4c5c3
-5	1287	6988678668745291	chat_client.exe	85919b5b5fc4c5c3
