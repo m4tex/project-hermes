@@ -41,6 +41,14 @@ public:
         participants_.insert(participant);
         for (auto msg: recent_msgs_)
             participant->deliver(msg);
+
+        if (recent_msgs_.empty()) {
+            chat_message emptyMsg;
+            std::memcpy(emptyMsg.body(), "(Empty)\n", 9);
+            emptyMsg.body_length(9);
+            emptyMsg.encode_header();
+            participant->deliver(emptyMsg);
+        }
     }
 
     void leave(const chat_participant_ptr& participant)

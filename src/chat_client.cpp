@@ -6,6 +6,7 @@
 
 #include <deque>
 #include <iostream>
+#include <fstream>
 #include <thread>
 #include "asio.hpp"
 #include "../include/chat_message.h"
@@ -122,6 +123,63 @@ private:
     chat_message_queue write_msgs_;
 };
 
+struct config_values {
+    std::string username;
+    std::string ac_ip;
+    unsigned short int ac_port;
+};
+
+//Config format is something as following: nickname="matexpl" domain="localhost:8088"
+//Returns an empty string if the word is not found
+std::string extract_config_value(const std::string& keyword, const std::string& text) {
+    size_t nick_pos;
+
+    if ((nick_pos = text.find(keyword)) == std::string::npos) return "";
+
+    size_t value_pos = text.find('=', nick_pos) + 1;
+    return text.substr(value_pos, text.find('"', value_pos) - value_pos);
+}
+
+bool read_config(config_values& config) {
+    std::string line;
+    std::ifstream config_file("config");
+
+    if (!config_file.is_open()) return false;
+
+    while(std::getline(config_file, line)) {
+        if (line.find('#') == std::string::npos) continue;
+
+        std::string result;
+
+        if (!(result = extract_config_value("username", line)).empty()) {
+            config.username = result;
+            std::cout << "hello" << std::endl;
+        }
+
+        if (!(result = extract_config_value("domain", line)).empty()) {
+            size_t separator;
+            if((separator = result.find(':')) == std::string::npos) {
+                std::cout << "[Error]: Wrong domain config format, use the following format: \"<server_ip>:<server_port>\"" << std::endl;
+                return false;
+            }
+
+            config.ac_ip = result.substr(0, separator - 1);
+            config.ac_port = std::stoi(result.substr(separator + 1));
+        }
+    }
+
+    if (config.username.empty()) {
+        std::cout << "[Error]: No username specified in the config file. Please edit the configuration file in a text editor and assign a username" << std::endl;
+
+        return false;
+    }
+
+    return true;
+}
+
+/* ==== Program return codes ====
+ * 0 = terminated successfully
+ * 1 = configuration file error */
 int main() {
     try {
         std::string server_ip;
@@ -130,6 +188,18 @@ int main() {
         std::cout << "-------------------------------------------\n";
         std::cout << "                   m4chat                  \n";
         std::cout << "-------------------------------------------\n";
+
+        config_values config;
+
+        if(!read_config(config)) {
+            std::cout << "[Error]: Configuration file error. Make sure the config "
+                         "file is within the program directory and is formatted properly." << std::endl;
+
+            std::cout << "Program ended, press enter to close." << std::endl;
+            std::cin.get();
+
+            return 1;
+        }
 
         std::cout << "Server IP (localhost): ";
         std::getline(std::cin, server_ip);
@@ -148,7 +218,7 @@ int main() {
         auto endpoints = resolver.resolve(server_ip, server_port);
 
         std::cout << "Resolved " << server_ip << ":" << server_port << std::endl;
-        std::cout << "==========================\n"  <<
+        std::cout << "==========================\n" <<
                      "   Chat session started   \n" <<
                      "==========================\n" <<
                      "     Last 10 messages     \n" << std::endl;
@@ -175,5 +245,13 @@ int main() {
         std::cerr << "Exception: " << e.what() << "\n";
     }
 
+    std::cout << "Press enter to close." << std::endl;
+    std::cin.get();
+
     return 0;
 }
+
+//TODO cursor thing, state of message sending
+//TODO config file, sender nickname
+//TODO RSA encryption
+//TODO signatures

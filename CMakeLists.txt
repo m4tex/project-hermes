@@ -15,7 +15,5 @@ if (WIN32)
     target_include_directories(chat_server PUBLIC ${WIN_INCLUDE_DIRECTORY})
 
 else()
-
     # nothing to do if it's linux
-
 endif ()
