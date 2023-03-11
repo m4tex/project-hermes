@@ -3,6 +3,7 @@
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// My code is based on Christopher M. Kohlhoff's chat client example code.
 
 #include <deque>
 #include <iostream>
@@ -51,15 +52,20 @@ private:
         asio::async_connect(socket_, endpoints,
                             [this](std::error_code ec, const tcp::endpoint&)
                             {
-                                if (!ec)
-                                {
-                                    do_read_header();
+                                if (!ec) do_read_header();
+
+                                else {
+                                std::cout << "error" << std::endl;
+                                throw std::runtime_error("rc" + std::to_string(ec.value()) +
+                                "Failed to connect to a server, make sure that there is a server hosted on the given domain.");
                                 }
                             });
     }
 
     void do_read_header()
     {
+        std::cout << "Reading headers :>" << std::endl;
+
         asio::async_read(socket_,
                          asio::buffer(read_msg_.data(), chat_message::header_length),
                          [this](std::error_code ec, std::size_t /*length*/)
@@ -125,8 +131,9 @@ private:
 
 struct config_values {
     std::string username;
-    std::string ac_ip;
-    unsigned short int ac_port;
+    std::string res_ip;
+//    unsigned short int ac_port;
+    std::string res_port;
 };
 
 //Config format is something as following: nickname="matexpl" domain="localhost:8088"
@@ -136,8 +143,10 @@ std::string extract_config_value(const std::string& keyword, const std::string& 
 
     if ((nick_pos = text.find(keyword)) == std::string::npos) return "";
 
-    size_t value_pos = text.find('=', nick_pos) + 1;
-    return text.substr(value_pos, text.find('"', value_pos) - value_pos);
+    size_t value_search_pos = text.find('=', nick_pos);
+    size_t value_start = text.find('"', value_search_pos) + 1; // Add one to skip over the quotation character
+
+    return text.substr(value_start, text.find('"', value_start) - value_start);
 }
 
 bool read_config(config_values& config) {
@@ -147,13 +156,12 @@ bool read_config(config_values& config) {
     if (!config_file.is_open()) return false;
 
     while(std::getline(config_file, line)) {
-        if (line.find('#') == std::string::npos) continue;
+        if (line.find('#') != std::string::npos) continue;
 
         std::string result;
 
         if (!(result = extract_config_value("username", line)).empty()) {
             config.username = result;
-            std::cout << "hello" << std::endl;
         }
 
         if (!(result = extract_config_value("domain", line)).empty()) {
@@ -163,8 +171,8 @@ bool read_config(config_values& config) {
                 return false;
             }
 
-            config.ac_ip = result.substr(0, separator - 1);
-            config.ac_port = std::stoi(result.substr(separator + 1));
+            config.res_ip = result.substr(0, separator);
+            config.res_port = result.substr(separator + 1);
         }
     }
 
@@ -179,12 +187,12 @@ bool read_config(config_values& config) {
 
 /* ==== Program return codes ====
  * 0 = terminated successfully
- * 1 = configuration file error */
+ * 1 = configuration file error
+ * 2 = failed to connect or resolve
+ * 3 = internal error, not specified by custom code
+ * 101 = something went really wrong */
 int main() {
     try {
-        std::string server_ip;
-        std::string server_port;
-
         std::cout << "-------------------------------------------\n";
         std::cout << "                   m4chat                  \n";
         std::cout << "-------------------------------------------\n";
@@ -201,31 +209,39 @@ int main() {
             return 1;
         }
 
-        std::cout << "Server IP (localhost): ";
-        std::getline(std::cin, server_ip);
+        if (config.res_ip.empty()) {
+            std::cout << "Server IP (localhost): ";
+            std::getline(std::cin, config.res_ip);
 
-        std::cout << "Server Port (8088): ";
-        std::getline(std::cin, server_port);
+            std::cout << "Server Port (8088): ";
+            std::getline(std::cin, config.res_port);
+        }
 
-        if (server_ip.empty()) server_ip = "localhost";
-        if (server_port.empty()) server_port = "8088";
-
-        std::cout << "\n";
+        if (config.res_ip.empty()) config.res_ip = "localhost";
+        if (config.res_port.empty()) config.res_port = "8088";
 
         asio::io_context io_context;
 
         tcp::resolver resolver(io_context);
-        auto endpoints = resolver.resolve(server_ip, server_port);
+        auto endpoints = resolver.resolve(config.res_ip, config.res_port);
 
-        std::cout << "Resolved " << server_ip << ":" << server_port << std::endl;
+        // Compare to an empty iterator to check whether it's empty
+        if (endpoints == tcp::resolver::iterator()) {
+            throw std::runtime_error("rc2Resolved no endpoints. Make sure the domain provided is correct.");
+        }
+
+        std::cout << "Resolved " << config.res_ip << ":" << config.res_port << std::endl;
+
+        chat_client c(io_context, endpoints);
+
+        // Starts a thread for the io_context event loop
+        std::thread t([&io_context]() { io_context.run(); });
+
         std::cout << "==========================\n" <<
                      "   Chat session started   \n" <<
                      "==========================\n" <<
                      "     Last 10 messages     \n" << std::endl;
 
-        chat_client c(io_context, endpoints);
-
-        std::thread t([&io_context]() { io_context.run(); });
 
         char line[chat_message::max_body_length + 1];
         while (std::cin.getline(line, chat_message::max_body_length + 1)) {
@@ -241,14 +257,31 @@ int main() {
         c.close();
         t.join();
     }
+
+    // Errors starting with "rc" are errors with a return code where the code is the number proceeding it.
     catch (std::exception &e) {
-        std::cerr << "Exception: " << e.what() << "\n";
+        std::string content = e.what();
+        unsigned short int code = 3;
+
+        //Works for single digit codes, good enough for now
+        if (content[0] == 'r' && content[1] == 'c') {
+            code = content[2] - '0'; //Character to digit conversion
+            content.erase(0, 3);
+        }
+
+        std::cerr << "[Error]: " << content << std::endl;
+
+        // Instead of flushing. Even when I flush both cout and cerr
+        // somehow the error message comes after the press enter message...
+        sleep(1);
+
+        std::cout << "Press enter to close." << std::endl;
+        std::cin.get();
+
+        return code;
     }
 
-    std::cout << "Press enter to close." << std::endl;
-    std::cin.get();
-
-    return 0;
+    return 101;
 }
 
 //TODO cursor thing, state of message sending

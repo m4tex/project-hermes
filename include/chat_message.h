@@ -1,12 +1,9 @@
-//
-// chat_message.hpp
-// ~~~~~~~~~~~~~~~~
-//
 // Copyright (c) 2003-2022 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
+// My code is based on Christopher M. Kohlhoff's chat client example code.
 
 #ifndef CHAT_MESSAGE_HPP
 #define CHAT_MESSAGE_HPP
