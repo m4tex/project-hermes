@@ -9,8 +9,11 @@
 #include <iostream>
 #include <fstream>
 #include <thread>
+#include <chrono>
 #include "asio.hpp"
 #include "../include/chat_message.h"
+
+static constexpr char client_version[] = "23.0.1";
 
 using asio::ip::tcp;
 
@@ -49,23 +52,48 @@ public:
 private:
     void do_connect(const tcp::resolver::results_type& endpoints)
     {
+
+        asio::steady_timer timer(io_context_, std::chrono::steady_clock::now() + std::chrono::seconds(5));
+
+        std::cout << "Connecting..." << std::endl;
+
+        timer.async_wait([&](const asio::error_code& ec)
+        {
+            if (ec == asio::error::operation_aborted) {
+                std::cout << "Timer operation was canceled." << std::endl;
+            }
+            else if (ec) {
+                throw std::runtime_error("rc2Timeout function error. " + ec.message());
+            }
+            else {
+                throw std::runtime_error("rc2Failed to connect due to timeout. Make sure a correct domain/ip is given. "
+                                         "That the domain has been resolved doesn't mean that there is a server hosted on it.");
+            }
+        });
+
         asio::async_connect(socket_, endpoints,
                             [this](std::error_code ec, const tcp::endpoint&)
                             {
-                                if (!ec) do_read_header();
+                                if (!ec) {
+                                    std::cout << "Connected successfully" << std::endl;
 
+                                    std::cout << "==========================\n" <<
+                                              "   Chat session started   \n" <<
+                                              "==========================\n" <<
+                                              "     Last 10 messages     \n" << std::endl;
+
+                                    do_read_header();
+                                }
                                 else {
-                                std::cout << "error" << std::endl;
-                                throw std::runtime_error("rc" + std::to_string(ec.value()) +
-                                "Failed to connect to a server, make sure that there is a server hosted on the given domain.");
+                                    throw std::runtime_error("Got error code " + std::to_string(ec.value()) + " whilst connecting."
+                                                                " Make sure a correct domain/ip is given. That the domain has been resolved doesn't"
+                                                                " mean that there is a server hosted on it.");
                                 }
                             });
     }
 
     void do_read_header()
     {
-        std::cout << "Reading headers :>" << std::endl;
-
         asio::async_read(socket_,
                          asio::buffer(read_msg_.data(), chat_message::header_length),
                          [this](std::error_code ec, std::size_t /*length*/)
@@ -225,23 +253,12 @@ int main() {
         tcp::resolver resolver(io_context);
         auto endpoints = resolver.resolve(config.res_ip, config.res_port);
 
-        // Compare to an empty iterator to check whether it's empty
-        if (endpoints == tcp::resolver::iterator()) {
-            throw std::runtime_error("rc2Resolved no endpoints. Make sure the domain provided is correct.");
-        }
-
         std::cout << "Resolved " << config.res_ip << ":" << config.res_port << std::endl;
 
         chat_client c(io_context, endpoints);
 
         // Starts a thread for the io_context event loop
         std::thread t([&io_context]() { io_context.run(); });
-
-        std::cout << "==========================\n" <<
-                     "   Chat session started   \n" <<
-                     "==========================\n" <<
-                     "     Last 10 messages     \n" << std::endl;
-
 
         char line[chat_message::max_body_length + 1];
         while (std::cin.getline(line, chat_message::max_body_length + 1)) {
