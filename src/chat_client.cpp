@@ -52,29 +52,19 @@ public:
 private:
     void do_connect(const tcp::resolver::results_type& endpoints)
     {
+        bool connected = false;
 
-        asio::steady_timer timer(io_context_, std::chrono::steady_clock::now() + std::chrono::seconds(5));
+        asio::steady_timer timer(io_context_);
+        timer.expires_after(std::chrono::seconds(5));
 
         std::cout << "Connecting..." << std::endl;
 
-        timer.async_wait([&](const asio::error_code& ec)
-        {
-            if (ec == asio::error::operation_aborted) {
-                std::cout << "Timer operation was canceled." << std::endl;
-            }
-            else if (ec) {
-                throw std::runtime_error("rc2Timeout function error. " + ec.message());
-            }
-            else {
-                throw std::runtime_error("rc2Failed to connect due to timeout. Make sure a correct domain/ip is given. "
-                                         "That the domain has been resolved doesn't mean that there is a server hosted on it.");
-            }
-        });
-
         asio::async_connect(socket_, endpoints,
-                            [this](std::error_code ec, const tcp::endpoint&)
+                            [&, this](std::error_code ec, const tcp::endpoint&)
                             {
                                 if (!ec) {
+                                    connected = true;
+
                                     std::cout << "Connected successfully" << std::endl;
 
                                     std::cout << "==========================\n" <<
@@ -85,11 +75,18 @@ private:
                                     do_read_header();
                                 }
                                 else {
+                                    std::cout << ec.message() << std::endl;
                                     throw std::runtime_error("Got error code " + std::to_string(ec.value()) + " whilst connecting."
                                                                 " Make sure a correct domain/ip is given. That the domain has been resolved doesn't"
                                                                 " mean that there is a server hosted on it.");
                                 }
                             });
+
+        timer.wait();
+
+        if (!connected)
+            throw std::runtime_error("rc2Connection timeout. Make sure a correct domain/ip is given. "
+                                     "That the domain has been resolved doesn't mean that there is a server hosted on it.");
     }
 
     void do_read_header()
