@@ -13,6 +13,13 @@
 #include "asio.hpp"
 #include "../include/chat_message.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#define sleep(x) Sleep(x*1000)
+#else
+#define sleep(x) sleep(x)
+#endif
+
 static constexpr char client_version[] = "23.0.1";
 
 using asio::ip::tcp;
